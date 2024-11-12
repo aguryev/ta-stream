@@ -1,0 +1,2 @@
+class IndicatorNotSetupError(Exception):
+    pass
