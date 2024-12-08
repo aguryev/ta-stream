@@ -55,7 +55,7 @@ class Chart:
 
     def update(self, candle: Candle) -> None:
         try:
-            if self.should_be_next_candle(candle.timestamp):
+            if len(self.history) == 0 or self.should_be_next_candle(candle.timestamp):
                 self.update_indicators()
                 self.append_candle(candle)
             else:
