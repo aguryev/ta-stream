@@ -8,9 +8,13 @@ class ATRIndicator(AbstractIndicator):
         super().__init__(name or f"atr_{period}", period)
         self._candle: Candle | None = None
 
-    def setup(self, history: list[Candle]) -> None:
+    @property
+    def setup_period(self) -> int:
+        return self.period + 1
+
+    def _split_setup_data(self, history: list[Candle]) -> tuple:
         self._candle = history[0]
-        super().setup(history[1:])
+        return history[1 : self.setup_period], history[self.setup_period :]
 
     @staticmethod
     def get_tr(candle: Candle, prev_close: float) -> float:

@@ -15,20 +15,26 @@ class AbstractIndicator(ABC):
     def setup_period(self) -> int:
         return self.period
 
+    def _split_setup_data(self, history: list[Candle]) -> tuple:
+        return history[: self.setup_period], history[self.setup_period :]
+
     def setup(self, history: list[Candle]) -> None:
-        if len(history) < self.period:
+        if len(history) < self.setup_period:
             raise TypeError(f"The setup data is shorter then {self.setup_period}.")
 
-        self.value = self.get_first_value(history[: self.setup_period])
-        for candle in history[self.setup_period :]:
+        setup_history, other_history = self._split_setup_data(history)
+
+        self.value = self.get_first_value(setup_history)
+        for candle in other_history:
             self.update(candle)
 
     def update(self, candle: Candle) -> None:
-        try:
+        if self.value is not None:
             value = self.get_next_value(candle)
             self.value = value
-        except TypeError:
-            raise IndicatorNotSetupError()
+            return
+
+        raise IndicatorNotSetupError()
 
     @abstractmethod
     def get_first_value(self, setup_history: list[Candle]) -> float:

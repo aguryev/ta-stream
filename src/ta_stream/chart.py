@@ -1,6 +1,5 @@
 from .candle import Candle
 from .indicators import AbstractIndicator
-from .indicators.exceptions import IndicatorNotSetupError
 
 
 class Chart:
@@ -11,7 +10,7 @@ class Chart:
         indicators: list[AbstractIndicator] = [],
         initial_history: list[Candle] = [],
         candle_stream_period: int = 1,
-        max_history_length=200,
+        max_history_length: int | None = 200,
     ) -> None:
         self.precision = precision
         self.period = chart_period
@@ -54,25 +53,26 @@ class Chart:
         return False
 
     def update(self, candle: Candle) -> None:
-        try:
-            if len(self.history) == 0 or self.should_be_next_candle(candle.timestamp):
-                self.update_indicators()
-                self.append_candle(candle)
-            else:
-                self.merge_candle(candle)
-        except KeyError:
+        if len(self.history) == 0 or self.should_be_next_candle(candle.timestamp):
+            for _ind in self.indicators:
+                self._update_indicator(_ind)
+
             self.append_candle(candle)
+        else:
+            self.merge_candle(candle)
 
-        self.history = self.history[-self.max_length :]
+        if self.max_length is not None:
+            self.history = self.history[-self.max_length :]
 
-    def update_indicators(self) -> None:
-        for _ind in self.indicators:
-            try:
-                _ind.update(self.history[-1])
-            except IndicatorNotSetupError:
-                _ind.setup(self.history)
+    def _update_indicator(self, indicator: AbstractIndicator) -> None:
+        if indicator.value is not None:
+            indicator.update(self.history[-1])
+        elif len(self.history) >= indicator.setup_period:
+            indicator.setup(self.history)
+        else:
+            return
 
-            self.history[-1].add_attr(_ind.name, round(_ind.value, self.precision))
+        self.history[-1].add_attr(indicator.name, round(indicator.value, self.precision))
 
     def json(self):
         return [candle.data for candle in self.history]

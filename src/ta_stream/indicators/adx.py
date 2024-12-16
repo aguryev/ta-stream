@@ -9,7 +9,7 @@ class ADXIndicator(ATRIndicator):
 
     @property
     def setup_period(self) -> int:
-        return 2 * self.period - 1
+        return 2 * self.period
 
     @staticmethod
     def get_dm(candle, prev_candle) -> tuple[float]:

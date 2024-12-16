@@ -67,7 +67,7 @@ def test_atr_indicator(candle_generator, data_field, eps, period):
         assert abs(getattr(candle, data_field) - atr.value) <= eps
 
 
-@pytest.mark.parametrize("data_name, data_field, eps, period, setup_period", [("cocoa", "adx", 0.01, 14, 27)])
+@pytest.mark.parametrize("data_name, data_field, eps, period, setup_period", [("cocoa", "adx", 0.01, 14, 28)])
 def test_adx_indicator(candle_generator, data_field, eps, period, setup_period):
     adx = ADXIndicator(period)
     assert adx.period == period
