@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 from .candle import Candle
 from .indicators import AbstractIndicator
 
@@ -5,14 +7,12 @@ from .indicators import AbstractIndicator
 class Chart:
     def __init__(
         self,
-        precision: int,
         chart_period: int,
         indicators: list[AbstractIndicator] = [],
         initial_history: list[Candle] = [],
         candle_stream_period: int = 1,
         max_history_length: int | None = 200,
     ) -> None:
-        self.precision = precision
         self.period = chart_period
         self.indicators = indicators
         self.stream_period = candle_stream_period
@@ -20,10 +20,18 @@ class Chart:
 
         self.setup_history(initial_history)
 
-    def setup_history(self, history: list[Candle], indicators: list = []) -> None:
+    def setup_history(self, history: Iterable[Candle], indicators: list = []) -> None:
         self.history: list[Candle] = []
         for candle in history:
             self.update(candle)
+
+    def set_max_history_length(self, value: int) -> None:
+        self.max_length = value
+        self._update_history_length()
+
+    def _update_history_length(self) -> None:
+        if self.max_length is not None:
+            self.history = self.history[-self.max_length :]
 
     def get_actual_timestamp(self, timestamp: int) -> int:
         return timestamp - (timestamp % (self.period * 60))
@@ -61,8 +69,7 @@ class Chart:
         else:
             self.merge_candle(candle)
 
-        if self.max_length is not None:
-            self.history = self.history[-self.max_length :]
+        self._update_history_length()
 
     def _update_indicator(self, indicator: AbstractIndicator) -> None:
         if indicator.value is not None:
@@ -72,7 +79,7 @@ class Chart:
         else:
             return
 
-        self.history[-1].add_attr(indicator.name, round(indicator.value, self.precision))
+        self.history[-1].add_attr(indicator.name, indicator.value)
 
     def json(self):
         return [candle.data for candle in self.history]

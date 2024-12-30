@@ -13,12 +13,7 @@ from ta_stream.indicators import ADXIndicator, PSARIndicator
     ],
 )
 def test_chart_setup(candle_generator, precision, period, expected):
-    chart = Chart(
-        precision=precision,
-        chart_period=period,
-        initial_history=list(candle_generator),
-    )
-    assert chart.precision == precision
+    chart = Chart(chart_period=period, initial_history=list(candle_generator))
     assert chart.period == period
     assert chart.indicators == []
     assert chart.stream_period == 1
@@ -26,10 +21,10 @@ def test_chart_setup(candle_generator, precision, period, expected):
 
     last_candle = chart.history[-1]
     assert last_candle.timestamp == expected[0]
-    assert last_candle.open == expected[1]
-    assert last_candle.high == expected[2]
-    assert last_candle.low == expected[3]
-    assert last_candle.close == expected[4]
+    assert round(last_candle.open, precision) == expected[1]
+    assert round(last_candle.high, precision) == expected[2]
+    assert round(last_candle.low, precision) == expected[3]
+    assert round(last_candle.close, precision) == expected[4]
 
 
 @pytest.mark.parametrize(
@@ -42,12 +37,11 @@ def test_chart_setup(candle_generator, precision, period, expected):
 def test_chart_with_indicators(candle_generator, precision, period, indicator_class, expected):
     indicator = indicator_class()
     chart = Chart(
-        precision=precision,
         chart_period=period,
         initial_history=list(candle_generator),
         indicators=[indicator],
     )
 
     last_indicator_candle = chart.history[-2]
-    assert getattr(last_indicator_candle, indicator.name) == expected
+    assert round(getattr(last_indicator_candle, indicator.name), precision) == expected
     assert round(indicator.value, precision) == expected
