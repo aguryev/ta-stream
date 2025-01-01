@@ -60,16 +60,17 @@ class Chart:
 
         return False
 
-    def update(self, candle: Candle) -> None:
-        if len(self.history) == 0 or self.should_be_next_candle(candle.timestamp):
-            for _ind in self.indicators:
-                self._update_indicator(_ind)
-
-            self.append_candle(candle)
-        else:
+    def update(self, candle: Candle) -> Candle | None:
+        if len(self.history) > 0 and not self.should_be_next_candle(candle.timestamp):
             self.merge_candle(candle)
+            return
 
+        for _ind in self.indicators:
+            self._update_indicator(_ind)
+
+        self.append_candle(candle)
         self._update_history_length()
+        return self.history[-1]
 
     def _update_indicator(self, indicator: AbstractIndicator) -> None:
         if indicator.value is not None:

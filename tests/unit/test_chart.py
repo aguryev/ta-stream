@@ -28,6 +28,43 @@ def test_chart_setup(candle_generator, precision, period, expected):
 
 
 @pytest.mark.parametrize(
+    "data_name, period, expected",
+    [
+        ("cocoa", 15, (1729846800, 1729847700, 1729848600)),
+        ("cocoa", 30, (1729846800, None, 1729848600)),
+        ("cocoa", 60, (1729846800, None, None)),
+    ],
+)
+def test_chart_update(candle_generator, period, expected):
+    chart = Chart(chart_period=period, initial_history=(next(candle_generator) for _ix in range(30)))
+
+    # first check
+    candle = chart.update(next(candle_generator))
+    try:
+        assert candle.timestamp == expected[0]
+    except AttributeError:
+        assert candle is None
+
+    # second check
+    for _ix in range(15):
+        candle = chart.update(next(candle_generator))
+
+    try:
+        assert candle.timestamp == expected[1]
+    except AttributeError:
+        assert candle is None
+
+    # third check
+    for _ix in range(15):
+        candle = chart.update(next(candle_generator))
+
+    try:
+        assert candle.timestamp == expected[2]
+    except AttributeError:
+        assert candle is None
+
+
+@pytest.mark.parametrize(
     "data_name, precision, period, indicator_class, expected",
     [
         ("cocoa", 3, 5, ADXIndicator, 34.075),
