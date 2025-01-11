@@ -1,6 +1,6 @@
 [project]
 name = "ta-stream"
-version = "0.2.2"
+version = "0.2.3"
 description = "Default template for PDM package"
 authors = [
     {name = "Andriy Guryev", email = "aguryev@ukr.net"},
