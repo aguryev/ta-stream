@@ -47,18 +47,17 @@ class Chart:
     def merge_candle(self, candle: Candle) -> None:
         self.history[-1].merge(candle)
 
-    def tick_price(self, timestamp: int, price: float) -> bool:
+    def tick_price(self, timestamp: int, price: float) -> Candle | None:
         try:
             if self.should_be_next_candle(timestamp):
-                candle = Candle.from_price(self.get_actual_timestamp(timestamp), price)
-                self.update(candle)
-                return True
+                last_candle = self.history[-1]
+                new_candle = Candle.from_price(self.get_actual_timestamp(timestamp), price)
+                self.update(new_candle)
+                return last_candle
             else:
                 self.history[-1].tick_price(price)
         except IndexError:
             pass
-
-        return False
 
     def update(self, candle: Candle) -> Candle | None:
         if len(self.history) > 0 and not self.should_be_next_candle(candle.timestamp):
